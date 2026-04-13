@@ -1,0 +1,65 @@
+{
+  "name": "n8n-nodes-paytm",
+  "version": "0.1.0",
+  "description": "n8n community node for Paytm Payments: orders, payment links, refunds, and RTDD APIs",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "n8n-nodes",
+    "n8n-nodes-paytm",
+    "paytm",
+    "payments",
+    "india"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/paytm/n8n-nodes-paytm#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paytm/n8n-nodes-paytm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/paytm/n8n-nodes-paytm/issues"
+  },
+  "author": {
+    "name": "Paytm n8n node contributors"
+  },
+  "engines": {
+    "node": ">=20.15"
+  },
+  "main": "index.js",
+  "scripts": {
+    "rebuild:n8n": "bash ./rebuild-refresh-n8n.sh",
+    "build": "npx rimraf dist && tsc && gulp build:icons",
+    "dev": "tsc --watch",
+    "format": "prettier nodes credentials --write",
+    "lint": "eslint nodes credentials package.json",
+    "lintfix": "eslint nodes credentials package.json --fix",
+    "prepublishOnly": "npm run build && npm run lint"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/PaytmApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Paytm/Paytm.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/parser": "~8.32.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-n8n-nodes-base": "^1.16.3",
+    "gulp": "^5.0.0",
+    "n8n-workflow": "^1.0.0",
+    "prettier": "^3.5.3",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}

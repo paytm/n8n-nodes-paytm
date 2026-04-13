@@ -1,0 +1,18 @@
+{
+  "node": "n8n-nodes-paytm.Paytm",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": ["Finance"],
+  "resources": {
+    "credentialDocumentation": [
+      {
+        "url": "https://www.paytmpayments.com/docs/getting-started"
+      }
+    ],
+    "primaryDocumentation": [
+      {
+        "url": "https://www.paytmpayments.com/docs/getting-started"
+      }
+    ]
+  }
+}
