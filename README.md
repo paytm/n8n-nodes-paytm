@@ -1,12 +1,10 @@
 # n8n-nodes-paytm
 
-**Repository:** [github.com/paytm/n8n-nodes-paytm](https://github.com/paytm/n8n-nodes-paytm)
-
 This is an **n8n community node**. It lets you use **Paytm** services in your n8n workflows.
 
 **Paytm** is a leading payments platform in India that enables businesses to accept payments, process refunds, manage settlements, and build payment-driven workflows.
 
-**n8n** is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
+[n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
 ---
 
@@ -19,7 +17,6 @@ This is an **n8n community node**. It lets you use **Paytm** services in your n8
 - [Usage](#usage)
 - [Resources](#resources)
 - [Version history](#version-history)
-- [Development](#development)
 - [License](#license)
 
 ---
@@ -39,20 +36,20 @@ Paytm n8n nodes support the following resources and operations.
 ### Order
 
 
-| Operation            | Description                                        |
-| -------------------- | -------------------------------------------------- |
-| **Get Many**         | Fetch all order details for your merchant account. |
-| **Get Many Details** | Fetch all the details related to an order.         |
+| Operation    | Description                                        |
+| ------------ | -------------------------------------------------- |
+| **Get**      | Fetch order details.                               |
+| **Get Many** | Fetch all order details for your merchant account. |
 
 
 ### Payment Link
 
 
-| Operation                 | Description                                        |
-| ------------------------- | -------------------------------------------------- |
-| **Create**                | Create and share a payment link.                   |
-| **Get Many**              | Fetch all payment links for your merchant account. |
-| **Get Many Transactions** | Fetch all transactions for a payment link.         |
+| Operation    | Description                                |
+| ------------ | ------------------------------------------ |
+| **Create**   | Create and share a payment link.           |
+| **Get**      | Fetch all transactions for a payment link. |
+| **Get Many** | Fetch all payment links.                   |
 
 
 ### Refund
@@ -190,7 +187,6 @@ Adjust paths and install location to match [n8n's Docker installation guide](htt
 - [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/installation/)
 - [Paytm Merchant Dashboard](https://dashboard.paytm.com/)
 - [Getting started with Paytm Payments](https://www.paytmpayments.com/docs/getting-started)
-- [Source coded issues](https://github.com/paytm/n8n-nodes-paytm)
 
 ---
 
@@ -198,14 +194,6 @@ Adjust paths and install location to match [n8n's Docker installation guide](htt
 
 - See [GitHub Releases](https://github.com/paytm/n8n-nodes-paytm/releases) for tagged versions.
 - Current package version: **0.1.0** (see `package.json`).
-
----
-
-## Development
-
-- **Build:** `npm run build`
-- **Lint:** `npm run lint`
-- **Format:** `npm run format`
 
 ---
 
