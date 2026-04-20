@@ -5,7 +5,7 @@ import {
 	type INode,
 	type INodeProperties,
 } from 'n8n-workflow';
-import { generateSignature } from '../client/checksum';
+import PaytmChecksum = require('../client/checksum');
 import { PARAM_PLACEHOLDER_URLS, PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { Operation } from '../enums';
 import type {
@@ -456,7 +456,7 @@ export async function executeCreatePaymentLink(
 		}
 	}
 
-	const signature = await generateSignature(body, keySecret);
+	const signature = await PaytmChecksum.generateSignature(JSON.stringify(body), keySecret);
 	const payload = buildCreatePaymentLinkPayload(body, signature);
 
 	const res = (await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {

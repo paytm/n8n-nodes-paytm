@@ -1,5 +1,5 @@
 import type { IDataObject, IExecuteFunctions, INodeProperties } from 'n8n-workflow';
-import { generateSignature } from '../client/checksum';
+import PaytmChecksum = require('../client/checksum');
 import { PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { Operation } from '../enums';
 import type {
@@ -282,7 +282,7 @@ export async function executeFetchPaymentLinks(
 	const keySecret = String(creds.keySecret ?? '').trim();
 
 	const innerBody = buildFetchPaymentLinksBody(this, itemIndex, mid);
-	const signature = await generateSignature(innerBody, keySecret);
+	const signature = await PaytmChecksum.generateSignature(JSON.stringify(innerBody), keySecret);
 	const payload = buildFetchPaymentLinksPayload(innerBody, signature);
 
 	const res = (await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {

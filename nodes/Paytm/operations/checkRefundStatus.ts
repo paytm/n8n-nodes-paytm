@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
-import { generateSignature } from '../client/checksum';
+import PaytmChecksum = require('../client/checksum');
 import { PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { Operation } from '../enums';
 import type { CheckRefundStatusBody, PaytmChecksumApiResponse } from '../types';
@@ -59,7 +59,7 @@ export async function executeCheckRefundStatus(
 		orderId,
 		refId,
 	};
-	const signature = await generateSignature(body, keySecret);
+	const signature = await PaytmChecksum.generateSignature(JSON.stringify(body), keySecret);
 	const payload = buildCheckRefundStatusPayload(body, signature);
 
 	const res = (await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {

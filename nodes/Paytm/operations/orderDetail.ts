@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
-import { generateSignature } from '../client/checksum';
+import PaytmChecksum = require('../client/checksum');
 import { Operation } from '../enums';
 import type { OrderDetailSettlementBody } from '../types';
 import {
@@ -63,7 +63,7 @@ export async function executeOrderDetail(
 	const fullUrl = new URL(pathAndQuery, `${base}/`).toString();
 
 	const { requestId, outerBody } = buildSettlementOuterEnvelope(rt, { ...body });
-	const signature = await generateSignature(outerBody, rt.keySecret);
+	const signature = await PaytmChecksum.generateSignature(JSON.stringify(outerBody), rt.keySecret);
 
 	const raw = await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {
 		method: 'POST',

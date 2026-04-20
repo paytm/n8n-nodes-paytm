@@ -7,7 +7,7 @@ import {
 import { Operation } from '../enums';
 import type { SettlementBillListBody } from '../types';
 import { toIsoDateTimeString, toYyyyMmDdThhMmSsPlus0530 } from '../utils/dateParamUtils';
-import { generateSignature } from '../client/checksum';
+import PaytmChecksum = require('../client/checksum');
 import {
 	buildSettlementOuterEnvelope,
 	getSettlementRuntime,
@@ -160,7 +160,7 @@ export async function executeSettlementBillList(
 	const fullUrl = new URL(pathAndQuery, `${base}/`).toString();
 
 	const { requestId, outerBody } = buildSettlementOuterEnvelope(rt, { ...body });
-	const signature = await generateSignature(outerBody, rt.keySecret);
+	const signature = await PaytmChecksum.generateSignature(JSON.stringify(outerBody), rt.keySecret);
 
 	const raw = await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {
 		method: 'POST',

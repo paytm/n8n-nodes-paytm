@@ -4,7 +4,7 @@ import type {
 	IHttpRequestOptions,
 } from 'n8n-workflow';
 
-import { generateSignature } from '../nodes/Paytm/client/checksum';
+import PaytmChecksum = require('../nodes/Paytm/client/checksum');
 import { SECURE_PAYMENTS_BASE_URLS } from '../nodes/Paytm/constants';
 import { resolvePaytmCredentialEnvironment } from '../nodes/Paytm/utils/credentialUtil';
 
@@ -52,7 +52,7 @@ export async function authenticatePaytmApi(
 
 	// Credential Test: `paytmApiTestRequest` sends marker body — replace with signed `{ mid }` probe to `/link/fetch`.
 	const body = { mid };
-	const signature = await generateSignature(body, keySecret);
+	const signature = await PaytmChecksum.generateSignature(body as unknown as Record<string, unknown>, keySecret);
 	const payload = {
 		body,
 		head: {

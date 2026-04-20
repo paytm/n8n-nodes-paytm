@@ -1,55 +1,93 @@
-/**
- * Paytm AES checksum for secure API requests (Node `crypto` only; no external signing package).
- * Matches the common Paytm Node flow: SHA256(params + '|' + salt) + salt, then AES-128-CBC encrypt with merchant key.
- */
+// @ts-nocheck
+'use strict';
 
-import * as crypto from 'crypto';
+var crypto = require('crypto');
 
-const IV = '@@@@&&&&####$$$$';
+class PaytmChecksum {
+	static encrypt(input, key) {
+		var cipher = crypto.createCipheriv('AES-128-CBC', key, PaytmChecksum.iv);
+		var encrypted = cipher.update(input, 'binary', 'base64');
+		encrypted += cipher.final('base64');
+		return encrypted;
+	}
+	static decrypt(encrypted, key) {
+		var decipher = crypto.createDecipheriv('AES-128-CBC', key, PaytmChecksum.iv);
+		var decrypted = decipher.update(encrypted, 'base64', 'binary');
+		try {
+			decrypted += decipher.final('binary');
+		} catch (e) {
+			console.log(e);
+		}
+		return decrypted;
+	}
+	static generateSignature(params, key) {
+		if (typeof params !== 'object' && typeof params !== 'string') {
+			var error = 'string or object expected, ' + typeof params + ' given.';
+			return Promise.reject(error);
+		}
+		if (typeof params !== 'string') {
+			params = PaytmChecksum.getStringByParams(params);
+		}
+		return PaytmChecksum.generateSignatureByString(params, key);
+	}
 
-function ensureKey16(key: string): Buffer {
-	const buf = Buffer.from(key, 'utf8');
-	if (buf.length >= 16) return buf.subarray(0, 16);
-	return Buffer.concat([buf, Buffer.alloc(16 - buf.length, 0)]);
+	static verifySignature(params, key, checksum) {
+		if (typeof params !== 'object' && typeof params !== 'string') {
+			var error = 'string or object expected, ' + typeof params + ' given.';
+			return Promise.reject(error);
+		}
+		if (params.hasOwnProperty('CHECKSUMHASH')) {
+			delete params.CHECKSUMHASH;
+		}
+		if (typeof params !== 'string') {
+			params = PaytmChecksum.getStringByParams(params);
+		}
+		return PaytmChecksum.verifySignatureByString(params, key, checksum);
+	}
+
+	static async generateSignatureByString(params, key) {
+		var salt = await PaytmChecksum.generateRandomString(4);
+		return PaytmChecksum.calculateChecksum(params, key, salt);
+	}
+
+	static verifySignatureByString(params, key, checksum) {
+		var paytm_hash = PaytmChecksum.decrypt(checksum, key);
+		var salt = paytm_hash.substr(paytm_hash.length - 4);
+		return paytm_hash === PaytmChecksum.calculateHash(params, salt);
+	}
+
+	static generateRandomString(length) {
+		return new Promise(function (resolve, reject) {
+			crypto.randomBytes((length * 3.0) / 4.0, function (err, buf) {
+				if (!err) {
+					var salt = buf.toString('base64');
+					resolve(salt);
+				} else {
+					console.log('error occurred in generateRandomString: ' + err);
+					reject(err);
+				}
+			});
+		});
+	}
+
+	static getStringByParams(params) {
+		var data = {};
+		Object.keys(params)
+			.sort()
+			.forEach(function (key, value) {
+				data[key] = params[key] !== null && params[key].toLowerCase() !== null ? params[key] : '';
+			});
+		return Object.values(data).join('|');
+	}
+
+	static calculateHash(params, salt) {
+		var finalString = params + '|' + salt;
+		return crypto.createHash('sha256').update(finalString).digest('hex') + salt;
+	}
+	static calculateChecksum(params, key, salt) {
+		var hashString = PaytmChecksum.calculateHash(params, salt);
+		return PaytmChecksum.encrypt(hashString, key);
+	}
 }
-
-function encrypt(input: string, key: string): string {
-	const keyBuf = ensureKey16(key);
-	const cipher = crypto.createCipheriv('aes-128-cbc', keyBuf, Buffer.from(IV, 'utf8'));
-	let encrypted = cipher.update(input, 'utf8', 'base64');
-	encrypted += cipher.final('base64');
-	return encrypted;
-}
-
-function generateRandomString(length: number): string {
-	const buf = crypto.randomBytes(Math.ceil((length * 3) / 4));
-	return buf.toString('base64').slice(0, length);
-}
-
-function calculateHash(params: string, salt: string): string {
-	const finalString = params + '|' + salt;
-	return crypto.createHash('sha256').update(finalString, 'utf8').digest('hex') + salt;
-}
-
-function calculateChecksum(params: string, key: string, salt: string): string {
-	const hashString = calculateHash(params, salt);
-	return encrypt(hashString, key);
-}
-
-/**
- * Serializes `body` to JSON and removes all whitespace, matching Paytm’s typical checksum signing input.
- */
-export function compactJsonSigningString<T>(body: T): string {
-	return JSON.stringify(body).replace(/\s/g, '');
-}
-
-/**
- * Produces the `head.signature` value for Paytm checksum APIs (and settlement header signing).
- * Pass the request body object; compact JSON for signing is derived via {@link compactJsonSigningString}.
- */
-export async function generateSignature<T>(body: T, key: string): Promise<string> {
-	const keyNormalized = key.trim();
-	const str = compactJsonSigningString(body);
-	const salt = generateRandomString(4);
-	return calculateChecksum(str, keyNormalized, salt);
-}
+PaytmChecksum.iv = '@@@@&&&&####$$$$';
+export = PaytmChecksum;
