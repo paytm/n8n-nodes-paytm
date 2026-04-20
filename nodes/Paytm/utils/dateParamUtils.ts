@@ -187,3 +187,22 @@ export function yyyyMmDdToDdMmYyyySlash(ymd: string): string | null {
 	const [, y, mo, d] = m;
 	return `${d}/${mo}/${y}`;
 }
+
+/**
+ * n8n node value → `dd/mm/yyyy hh:mm:ss` when a datetime yields ISO calendar digits
+ * ({@link toDdMmYyyySpaceHhMmSsFromIsoDigits}), otherwise `dd/mm/yyyy` for a date-only `YYYY-MM-DD`
+ * ({@link yyyyMmDdToDdMmYyyySlash}). Returns `''` if nothing usable.
+ */
+export function toDdMmYyyyWithOptionalTime(value: unknown): string {
+	const rawDt = toIsoDateTimeString(value);
+	if (rawDt) {
+		const literal = toDdMmYyyySpaceHhMmSsFromIsoDigits(rawDt);
+		if (literal) return literal;
+	}
+	const ymd = toYyyyMmDd(value);
+	if (ymd) {
+		const lit = yyyyMmDdToDdMmYyyySlash(ymd);
+		if (lit) return lit;
+	}
+	return '';
+}

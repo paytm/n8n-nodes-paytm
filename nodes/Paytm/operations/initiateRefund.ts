@@ -5,7 +5,7 @@ import {
 	type INodeProperties,
 	type INode,
 } from 'n8n-workflow';
-import { generateChecksum } from '../client/checksum';
+import { generateSignature } from '../client/checksum';
 import { PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { Operation } from '../enums';
 import type {
@@ -13,7 +13,7 @@ import type {
 	InitiateRefundBody,
 	PaytmChecksumApiResponse,
 } from '../types';
-import { getClient, getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
+import { getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
 import { responseValidation } from '../utils/responseValidationUtil';
 import { assertMandatoryNumber, assertMandatoryStrings } from '../utils/fieldValidationUtil';
 
@@ -308,18 +308,6 @@ export const initiateRefundDescription: INodeProperties[] = [
 	},
 ];
 
-function signingStringForInitiateRefundBody(innerBody: InitiateRefundBody): string {
-	return JSON.stringify(innerBody).replace(/\s/g, '');
-}
-
-async function generateInitiateRefundSignature(
-	innerBody: InitiateRefundBody,
-	keySecret: string,
-): Promise<string> {
-	const signingInput = signingStringForInitiateRefundBody(innerBody);
-	return generateChecksum(signingInput, keySecret);
-}
-
 function buildInitiateRefundPayload(innerBody: InitiateRefundBody, signature: string): Record<string, unknown> {
 	return {
 		body: innerBody,
@@ -353,7 +341,6 @@ export async function executeInitiateRefund(
 	const additionalRaw = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 	const creds = await this.getCredentials(PAYTM_API_CREDENTIAL_NAME);
-	const client = await getClient(this);
 	const mid = creds.merchantId as string;
 	const keySecret = String(creds.keySecret ?? '').trim();
 
@@ -389,12 +376,14 @@ export async function executeInitiateRefund(
 		body.refundItems = refundItemsParsed;
 	}
 
-	const signature = await generateInitiateRefundSignature(body, keySecret);
+	const signature = await generateSignature(body, keySecret);
 	const payload = buildInitiateRefundPayload(body, signature);
 
-	const res = (await client.postClientCall({
-		body: payload,
+	const res = (await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {
+		method: 'POST',
 		url: resolvePaytmSecureApiUrl(creds.environment as string | undefined, 'REFUND_APPLY'),
+		body: payload,
+		json: true,
 	})) as PaytmChecksumApiResponse;
 	responseValidation(res);
 	return getBody(res) ?? res;

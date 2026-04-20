@@ -7,7 +7,7 @@ import {
 import { Operation } from '../enums';
 import type { SettlementTxnListByDateBody } from '../types';
 import { toIsoDateTimeString, toYyyyMmDd } from '../utils/dateParamUtils';
-import { generateChecksum } from '../client/checksum';
+import { generateSignature } from '../client/checksum';
 import {
 	buildSettlementOuterEnvelope,
 	dateToIsoEnd,
@@ -15,7 +15,7 @@ import {
 	getSettlementRuntime,
 	SETTLEMENT_FUNCTION,
 } from '../utils/settlementUtil';
-import { getClient } from '../utils/credentialUtil';
+import { PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { settlementResponseValidation } from '../utils/responseValidationUtil';
 import { MANDATORY_FIELDS_ERROR_MESSAGE } from '../utils/fieldValidationUtil';
 
@@ -111,13 +111,13 @@ export async function executeSettlementTxnListByDate(
 	const fullUrl = new URL(pathAndQuery, `${base}/`).toString();
 
 	const { requestId, outerBody } = buildSettlementOuterEnvelope(rt, { ...body });
-	const signingString = JSON.stringify(outerBody).replace(/\s/g, '');
-	const signature = await generateChecksum(signingString, rt.keySecret);
+	const signature = await generateSignature(outerBody, rt.keySecret);
 
-	const client = await getClient(this);
-	const raw = await client.postClientCall({
+	const raw = await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {
+		method: 'POST',
 		url: fullUrl,
 		body: outerBody,
+		json: true,
 		headers: {
 			'Content-Type': 'application/json',
 			signature,

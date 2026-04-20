@@ -5,19 +5,6 @@
 
 import type { IDataObject } from 'n8n-workflow';
 
-import type { PaytmCredentialEnvironment } from '../constants';
-
-// =================
-// CREDENTIALS
-// =================
-
-/** Decrypted Paytm API credential fields passed into `PaytmClient`. */
-export interface PaytmCredentials {
-	merchantId: string;
-	keySecret: string;
-	environment?: PaytmCredentialEnvironment | string;
-}
-
 // =================
 // CHECKSUM API — COMMON
 // =================

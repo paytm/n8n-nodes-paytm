@@ -1,9 +1,9 @@
 import { NodeOperationError, type IExecuteFunctions, type INodeProperties } from 'n8n-workflow';
-import { generateChecksum } from '../client/checksum';
+import { generateSignature } from '../client/checksum';
 import { PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { Operation } from '../enums';
 import type { FetchRefundListBody, FetchRefundListRawResponse } from '../types';
-import { getClient, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
+import { resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
 import { toIsoDateTimeString, toYyyyMmDdThhMmSsPlus0530 } from '../utils/dateParamUtils';
 import { MANDATORY_FIELDS_ERROR_MESSAGE } from '../utils/fieldValidationUtil';
 
@@ -54,18 +54,6 @@ export const fetchRefundListDescription: INodeProperties[] = [
 	},
 ];
 
-function signingStringForFetchRefundListBody(innerBody: FetchRefundListBody): string {
-	return JSON.stringify(innerBody).replace(/\s/g, '');
-}
-
-async function generateFetchRefundListSignature(
-	innerBody: FetchRefundListBody,
-	keySecret: string,
-): Promise<string> {
-	const signingInput = signingStringForFetchRefundListBody(innerBody);
-	return generateChecksum(signingInput, keySecret);
-}
-
 function buildFetchRefundListPayload(innerBody: FetchRefundListBody, signature: string): Record<string, unknown> {
 	return {
 		body: innerBody,
@@ -94,7 +82,6 @@ export async function executeFetchRefundList(
 	const pageNumber = this.getNodeParameter('pageNumber', itemIndex) as number;
 	const pageSize = this.getNodeParameter('pageSize', itemIndex) as number;
 	const creds = await this.getCredentials(PAYTM_API_CREDENTIAL_NAME);
-	const client = await getClient(this);
 	const mid = creds.merchantId as string;
 	const keySecret = String(creds.keySecret ?? '').trim();
 	const body: FetchRefundListBody = {
@@ -105,12 +92,14 @@ export async function executeFetchRefundList(
 		pageNum: pageNumber,
 		pageSize,
 	};
-	const signature = await generateFetchRefundListSignature(body, keySecret);
+	const signature = await generateSignature(body, keySecret);
 	const payload = buildFetchRefundListPayload(body, signature);
 
-	const res = (await client.postClientCall({
-		body: payload,
+	const res = (await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {
+		method: 'POST',
 		url: resolvePaytmSecureApiUrl(creds.environment as string | undefined, 'REFUND_PASSBOOK_LIST'),
+		body: payload,
+		json: true,
 	})) as FetchRefundListRawResponse;
 	const status = res.status;
 	if (status !== 'SUCCESS') {

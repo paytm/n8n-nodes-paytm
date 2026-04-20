@@ -1,13 +1,10 @@
-import { PaytmClient } from '../client/PaytmClient';
 import {
-	PAYTM_API_CREDENTIAL_NAME,
 	PAYTM_SECURE_API_ENDPOINT,
 	SECURE_PAYMENTS_BASE_URLS,
 	type PaytmCredentialEnvironment,
 	type PaytmSecureApiOperation,
 	ENV,
 } from '../constants';
-import type { PaytmCredentials } from '../types';
 
 /** Normalizes credential `environment` to `production` or `test`. */
 export function resolvePaytmCredentialEnvironment(
@@ -35,20 +32,6 @@ export function resolvePaytmSecureApiUrl(
 		}
 	}
 	return url.toString();
-}
-
-export async function getClient(context: {
-	getCredentials: (name: string) => Promise<Record<string, string>>;
-}): Promise<PaytmClient> {
-	const creds = await context.getCredentials(PAYTM_API_CREDENTIAL_NAME);
-	const env = resolvePaytmCredentialEnvironment(creds.environment as string | undefined);
-	const baseUrl = SECURE_PAYMENTS_BASE_URLS[env];
-	const paytmCreds: PaytmCredentials = {
-		merchantId: creds.merchantId as string,
-		keySecret: creds.keySecret as string,
-		environment: env,
-	};
-	return new PaytmClient(paytmCreds, baseUrl);
 }
 
 export function getBody<T = Record<string, unknown>>(res: { body?: T }): T | undefined {

@@ -1,9 +1,9 @@
 import { NodeOperationError, type IExecuteFunctions, type INodeProperties } from 'n8n-workflow';
-import { generateChecksum } from '../client/checksum';
+import { generateSignature } from '../client/checksum';
 import { PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { Operation } from '../enums';
 import type { FetchSubscriptionStatusBody, PaytmChecksumApiResponse } from '../types';
-import { getClient, getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
+import { getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
 import { responseValidation } from '../utils/responseValidationUtil';
 
 export const fetchSubscriptionStatusDescription: INodeProperties[] = [
@@ -43,18 +43,6 @@ export const fetchSubscriptionStatusDescription: INodeProperties[] = [
 	},
 ];
 
-function signingStringForFetchSubscriptionStatusBody(innerBody: FetchSubscriptionStatusBody): string {
-	return JSON.stringify(innerBody).replace(/\s/g, '');
-}
-
-async function generateFetchSubscriptionStatusSignature(
-	innerBody: FetchSubscriptionStatusBody,
-	keySecret: string,
-): Promise<string> {
-	const signingInput = signingStringForFetchSubscriptionStatusBody(innerBody);
-	return generateChecksum(signingInput, keySecret);
-}
-
 function buildFetchSubscriptionStatusPayload(
 	innerBody: FetchSubscriptionStatusBody,
 	signature: string,
@@ -87,7 +75,6 @@ export async function executeFetchSubscriptionStatus(
 	}
 
 	const creds = await this.getCredentials(PAYTM_API_CREDENTIAL_NAME);
-	const client = await getClient(this);
 	const mid = creds.merchantId as string;
 	const keySecret = String(creds.keySecret ?? '').trim();
 
@@ -97,12 +84,14 @@ export async function executeFetchSubscriptionStatus(
 	if (linkId) body.linkId = linkId;
 	if (custId) body.custId = custId;
 
-	const signature = await generateFetchSubscriptionStatusSignature(body, keySecret);
+	const signature = await generateSignature(body, keySecret);
 	const payload = buildFetchSubscriptionStatusPayload(body, signature);
 
-	const res = (await client.postClientCall({
-		body: payload,
+	const res = (await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {
+		method: 'POST',
 		url: resolvePaytmSecureApiUrl(creds.environment as string | undefined, 'SUBSCRIPTION_CHECK_STATUS'),
+		body: payload,
+		json: true,
 	})) as PaytmChecksumApiResponse;
 	responseValidation(res);
 	return getBody(res) ?? res;

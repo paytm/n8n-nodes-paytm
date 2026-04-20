@@ -1,22 +1,55 @@
 /**
- * Checksum generation for signed API requests (aligned with Paytm’s [`paytmchecksum`](https://www.npmjs.com/package/paytmchecksum) package).
+ * Paytm AES checksum for secure API requests (Node `crypto` only; no external signing package).
+ * Matches the common Paytm Node flow: SHA256(params + '|' + salt) + salt, then AES-128-CBC encrypt with merchant key.
  */
 
-const paytmChecksumLib = require('paytmchecksum') as {
-	generateSignature: (params: string | Record<string, unknown>, key: string) => Promise<string>;
-};
+import * as crypto from 'crypto';
+
+const IV = '@@@@&&&&####$$$$';
+
+function ensureKey16(key: string): Buffer {
+	const buf = Buffer.from(key, 'utf8');
+	if (buf.length >= 16) return buf.subarray(0, 16);
+	return Buffer.concat([buf, Buffer.alloc(16 - buf.length, 0)]);
+}
+
+function encrypt(input: string, key: string): string {
+	const keyBuf = ensureKey16(key);
+	const cipher = crypto.createCipheriv('aes-128-cbc', keyBuf, Buffer.from(IV, 'utf8'));
+	let encrypted = cipher.update(input, 'utf8', 'base64');
+	encrypted += cipher.final('base64');
+	return encrypted;
+}
+
+function generateRandomString(length: number): string {
+	const buf = crypto.randomBytes(Math.ceil((length * 3) / 4));
+	return buf.toString('base64').slice(0, length);
+}
+
+function calculateHash(params: string, salt: string): string {
+	const finalString = params + '|' + salt;
+	return crypto.createHash('sha256').update(finalString, 'utf8').digest('hex') + salt;
+}
+
+function calculateChecksum(params: string, key: string, salt: string): string {
+	const hashString = calculateHash(params, salt);
+	return encrypt(hashString, key);
+}
 
 /**
- * Generates Paytm request checksums using the official Node [`paytmchecksum`](https://www.npmjs.com/package/paytmchecksum) package (`require('paytmchecksum')`).
- * Matches Paytm’s published Node checksum flow—pass a flat object or a compact JSON string plus your key secret.
- *
- * - **Flat param maps** (e.g. `MID`, `ORDERID`): pass the object; the library sorts keys and joins values with `|`.
- * - **Payload that must be signed as a single JSON string** (common for secure API `body`): pass
- *   compact `JSON.stringify(body)` (no spaces) so signing matches the string branch of the official helper.
+ * Serializes `body` to JSON and removes all whitespace, matching Paytm’s typical checksum signing input.
  */
-export async function generateChecksum(
-	params: string | Record<string, unknown>,
-	key: string,
-): Promise<string> {
-	return paytmChecksumLib.generateSignature(params, key.trim());
+export function compactJsonSigningString<T>(body: T): string {
+	return JSON.stringify(body).replace(/\s/g, '');
+}
+
+/**
+ * Produces the `head.signature` value for Paytm checksum APIs (and settlement header signing).
+ * Pass the request body object; compact JSON for signing is derived via {@link compactJsonSigningString}.
+ */
+export async function generateSignature<T>(body: T, key: string): Promise<string> {
+	const keyNormalized = key.trim();
+	const str = compactJsonSigningString(body);
+	const salt = generateRandomString(4);
+	return calculateChecksum(str, keyNormalized, salt);
 }

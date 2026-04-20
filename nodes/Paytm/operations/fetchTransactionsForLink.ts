@@ -1,9 +1,9 @@
 import type { IDataObject, IExecuteFunctions, INodeProperties } from 'n8n-workflow';
-import { generateChecksum } from '../client/checksum';
+import { generateSignature } from '../client/checksum';
 import { PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { Operation } from '../enums';
 import type { FetchTransactionsForLinkBody, PaytmChecksumApiResponse } from '../types';
-import { getClient, getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
+import { getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
 import { responseValidation } from '../utils/responseValidationUtil';
 import { assertMandatoryStrings } from '../utils/fieldValidationUtil';
 import { toDdMmYyyySlashIstFromNodeValue } from '../utils/dateParamUtils';
@@ -66,18 +66,6 @@ function trimStr(v: unknown): string {
 	return String(v).trim();
 }
 
-function signingStringForFetchTransactionsForLinkBody(innerBody: FetchTransactionsForLinkBody): string {
-	return JSON.stringify(innerBody).replace(/\s/g, '');
-}
-
-async function generateFetchTransactionsForLinkSignature(
-	innerBody: FetchTransactionsForLinkBody,
-	keySecret: string,
-): Promise<string> {
-	const signingInput = signingStringForFetchTransactionsForLinkBody(innerBody);
-	return generateChecksum(signingInput, keySecret);
-}
-
 function buildFetchTransactionsForLinkPayload(
 	innerBody: FetchTransactionsForLinkBody,
 	signature: string,
@@ -102,7 +90,6 @@ export async function executeFetchTransactionsForLink(
 	const additionalRaw = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 	const creds = await this.getCredentials(PAYTM_API_CREDENTIAL_NAME);
-	const client = await getClient(this);
 	const mid = creds.merchantId as string;
 	const keySecret = String(creds.keySecret ?? '').trim();
 
@@ -122,12 +109,14 @@ export async function executeFetchTransactionsForLink(
 		body.fetchAllTxns = true;
 	}
 
-	const signature = await generateFetchTransactionsForLinkSignature(body, keySecret);
+	const signature = await generateSignature(body, keySecret);
 	const payload = buildFetchTransactionsForLinkPayload(body, signature);
 
-	const res = (await client.postClientCall({
-		body: payload,
+	const res = (await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {
+		method: 'POST',
 		url: resolvePaytmSecureApiUrl(creds.environment as string | undefined, 'PAYMENT_LINK_FETCH_TRANSACTIONS'),
+		body: payload,
+		json: true,
 	})) as PaytmChecksumApiResponse;
 	responseValidation(res);
 	return getBody(res) ?? res;

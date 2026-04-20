@@ -1,9 +1,9 @@
 import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
-import { generateChecksum } from '../client/checksum';
+import { generateSignature } from '../client/checksum';
 import { PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { Operation } from '../enums';
 import type { CheckRefundStatusBody, PaytmChecksumApiResponse } from '../types';
-import { getClient, getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
+import { getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
 import { responseValidation } from '../utils/responseValidationUtil';
 import { assertMandatoryStrings } from '../utils/fieldValidationUtil';
 
@@ -30,18 +30,6 @@ export const checkRefundStatusDescription: INodeProperties[] = [
 	},
 ];
 
-function signingStringForCheckRefundStatusBody(innerBody: CheckRefundStatusBody): string {
-	return JSON.stringify(innerBody).replace(/\s/g, '');
-}
-
-async function generateCheckRefundStatusSignature(
-	innerBody: CheckRefundStatusBody,
-	keySecret: string,
-): Promise<string> {
-	const signingInput = signingStringForCheckRefundStatusBody(innerBody);
-	return generateChecksum(signingInput, keySecret);
-}
-
 function buildCheckRefundStatusPayload(
 	innerBody: CheckRefundStatusBody,
 	signature: string,
@@ -64,7 +52,6 @@ export async function executeCheckRefundStatus(
 	const refId = ((this.getNodeParameter('refId', itemIndex) as string) ?? '').trim();
 	assertMandatoryStrings(this, itemIndex, orderId, refId);
 	const creds = await this.getCredentials(PAYTM_API_CREDENTIAL_NAME);
-	const client = await getClient(this);
 	const mid = creds.merchantId as string;
 	const keySecret = String(creds.keySecret ?? '').trim();
 	const body: CheckRefundStatusBody = {
@@ -72,12 +59,14 @@ export async function executeCheckRefundStatus(
 		orderId,
 		refId,
 	};
-	const signature = await generateCheckRefundStatusSignature(body, keySecret);
+	const signature = await generateSignature(body, keySecret);
 	const payload = buildCheckRefundStatusPayload(body, signature);
 
-	const res = (await client.postClientCall({
-		body: payload,
+	const res = (await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {
+		method: 'POST',
 		url: resolvePaytmSecureApiUrl(creds.environment as string | undefined, 'REFUND_STATUS_V2'),
+		body: payload,
+		json: true,
 	})) as PaytmChecksumApiResponse;
 	responseValidation(res);
 	return getBody(res) ?? res;

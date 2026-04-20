@@ -5,7 +5,7 @@ import {
 	type INode,
 	type INodeProperties,
 } from 'n8n-workflow';
-import { generateChecksum } from '../client/checksum';
+import { generateSignature } from '../client/checksum';
 import { PARAM_PLACEHOLDER_URLS, PAYTM_API_CREDENTIAL_NAME } from '../constants';
 import { Operation } from '../enums';
 import type {
@@ -13,14 +13,9 @@ import type {
 	CreatePaymentLinkCustomerContact,
 	PaytmChecksumApiResponse,
 } from '../types';
-import { getClient, getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
+import { getBody, resolvePaytmSecureApiUrl } from '../utils/credentialUtil';
 import { responseValidation } from '../utils/responseValidationUtil';
-import {
-	toDdMmYyyySpaceHhMmSsFromIsoDigits,
-	toIsoDateTimeString,
-	toYyyyMmDd,
-	yyyyMmDdToDdMmYyyySlash,
-} from '../utils/dateParamUtils';
+import { toDdMmYyyyWithOptionalTime } from '../utils/dateParamUtils';
 import { MANDATORY_FIELDS_ERROR_MESSAGE } from '../utils/fieldValidationUtil';
 
 const LINK_NAME_MAX_LEN = 64;
@@ -31,21 +26,6 @@ const CREATE_LINK_ONLY = { show: { operation: [Operation.CREATE_PAYMENT_LINK] } 
 function trimStr(v: unknown): string {
 	if (v === undefined || v === null) return '';
 	return String(v).trim();
-}
-
-/** Expiry: `dd/mm/yyyy hh:mm:ss` or `dd/mm/yyyy` (ISO digits → `toDdMmYyyySpaceHhMmSsFromIsoDigits` / `yyyyMmDdToDdMmYyyySlash`). */
-function formatExpiryDateForBody(value: unknown): string {
-	const rawDt = toIsoDateTimeString(value);
-	if (rawDt) {
-		const literal = toDdMmYyyySpaceHhMmSsFromIsoDigits(rawDt);
-		if (literal) return literal;
-	}
-	const ymd = toYyyyMmDd(value);
-	if (ymd) {
-		const lit = yyyyMmDdToDdMmYyyySlash(ymd);
-		if (lit) return lit;
-	}
-	return '';
 }
 
 function parseBoolFromOptionalValue(
@@ -110,7 +90,7 @@ function applyOptionalLinkFieldsCollection(
 		}
 	}
 
-	const exp = formatExpiryDateForBody(raw.expiryDate);
+	const exp = toDdMmYyyyWithOptionalTime(raw.expiryDate);
 	if (exp) body.expiryDate = exp;
 }
 
@@ -350,18 +330,6 @@ export const createPaymentLinkDescription: INodeProperties[] = [
 	},
 ];
 
-function signingStringForCreatePaymentLinkBody(innerBody: CreatePaymentLinkBody): string {
-	return JSON.stringify(innerBody).replace(/\s/g, '');
-}
-
-async function generateCreatePaymentLinkSignature(
-	innerBody: CreatePaymentLinkBody,
-	keySecret: string,
-): Promise<string> {
-	const signingInput = signingStringForCreatePaymentLinkBody(innerBody);
-	return generateChecksum(signingInput, keySecret);
-}
-
 function buildCreatePaymentLinkPayload(
 	innerBody: CreatePaymentLinkBody,
 	signature: string,
@@ -461,7 +429,6 @@ export async function executeCreatePaymentLink(
 	}
 
 	const creds = await this.getCredentials(PAYTM_API_CREDENTIAL_NAME);
-	const client = await getClient(this);
 	const keySecret = String(creds.keySecret ?? '').trim();
 	body.mid = creds.merchantId as string;
 	applyOptionalLinkFieldsCollection(body, additionalRaw, this.getNode(), itemIndex);
@@ -489,12 +456,14 @@ export async function executeCreatePaymentLink(
 		}
 	}
 
-	const signature = await generateCreatePaymentLinkSignature(body, keySecret);
+	const signature = await generateSignature(body, keySecret);
 	const payload = buildCreatePaymentLinkPayload(body, signature);
 
-	const res = (await client.postClientCall({
-		body: payload,
+	const res = (await this.helpers.httpRequestWithAuthentication.call(this, PAYTM_API_CREDENTIAL_NAME, {
+		method: 'POST',
 		url: resolvePaytmSecureApiUrl(creds.environment as string | undefined, 'PAYMENT_LINK_CREATE'),
+		body: payload,
+		json: true,
 	})) as PaytmChecksumApiResponse;
 	responseValidation(res);
 	return getBody(res) ?? res;

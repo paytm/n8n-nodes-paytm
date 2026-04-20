@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-paytm",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"description": "n8n community node for Paytm Payments: orders, payment links, refunds, and settlement APIs",
 	"keywords": [
 		"n8n-community-node-package",
@@ -28,6 +28,7 @@
 	},
 	"main": "dist/index.js",
 	"scripts": {
+		"rebuild:n8n": "bash ./rebuild-refresh-n8n.sh",
 		"build": "npx rimraf dist && tsc && gulp build:icons",
 		"dev": "tsc --watch",
 		"format": "prettier nodes credentials --write",
@@ -60,8 +61,5 @@
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
-	},
-	"dependencies": {
-		"paytmchecksum": "^1.5.1"
 	}
 }
