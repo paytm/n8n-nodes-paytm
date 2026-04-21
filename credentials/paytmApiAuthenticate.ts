@@ -1,8 +1,4 @@
-import type {
-	ICredentialDataDecryptedObject,
-	ICredentialTestRequest,
-	IHttpRequestOptions,
-} from 'n8n-workflow';
+import type { ICredentialDataDecryptedObject, IHttpRequestOptions } from 'n8n-workflow';
 
 import PaytmChecksum = require('../nodes/Paytm/client/checksum');
 import { SECURE_PAYMENTS_BASE_URLS } from '../nodes/Paytm/constants';
@@ -14,8 +10,8 @@ function resolvePaytmBaseUrl(environmentRaw: string | undefined): string {
 }
 
 /**
- * Single-key JSON on {@link paytmApiTestRequest} `request.body` so this hook can tell **credential Test**
- * from **node** `httpRequestWithAuthentication` calls. Do not send this key from Paytm node operations.
+ * Marker key on the credential test `request.body` (see `PaytmApi.credentials.ts`) so this hook can tell
+ * **credential Test** from **node** `httpRequestWithAuthentication` calls. Do not send this key from Paytm node operations.
  */
 export const PAYTM_CREDENTIAL_TEST_MARKER_KEY = '__n8nPaytmCredentialTest' as const;
 
@@ -50,9 +46,10 @@ export async function authenticatePaytmApi(
 		};
 	}
 
-	// Credential Test: `paytmApiTestRequest` sends marker body — replace with signed `{ mid }` probe to `/link/fetch`.
+	// Credential Test: test `request` sends marker body — replace with signed `{ mid }` probe to `/link/fetch`.
 	const body = { mid };
-	const signature = await PaytmChecksum.generateSignature(body as unknown as Record<string, unknown>, keySecret);
+	// Match paytmpayments-mcp-server: sign compact JSON of body so Paytm validates checksum the same way as production calls.
+	const signature = await PaytmChecksum.generateSignature(JSON.stringify(body), keySecret);
 	const payload = {
 		body,
 		head: {
@@ -63,7 +60,7 @@ export async function authenticatePaytmApi(
 	};
 	return {
 		...requestOptions,
-		baseURL,
+		baseURL: requestOptions.baseURL ?? baseURL,
 		method: 'POST',
 		url: '/link/fetch',
 		body: payload,
@@ -74,14 +71,3 @@ export async function authenticatePaytmApi(
 		json: true,
 	};
 }
-
-export const paytmApiTestRequest: ICredentialTestRequest = {
-	request: {
-		method: 'POST',
-		url: '/link/fetch',
-		json: true,
-		body: {
-			[PAYTM_CREDENTIAL_TEST_MARKER_KEY]: true,
-		},
-	},
-};

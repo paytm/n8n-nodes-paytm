@@ -25,7 +25,7 @@ export const PARAM_PLACEHOLDER_URLS = {
 // --- Base URLs (one per environment) ---
 
 export const PAYTM_SECURE_BASE_URL_PRODUCTION = 'https://secure.paytmpayments.com';
-export const PAYTM_SECURE_BASE_URL_TEST = 'https://secure.paytmpayments.com';
+export const PAYTM_SECURE_BASE_URL_TEST = 'https://securestage.paytmpayments.com';
 
 export const SECURE_PAYMENTS_BASE_URLS: Record<PaytmCredentialEnvironment, string> = {
 	[ENV.PRODUCTION]: PAYTM_SECURE_BASE_URL_PRODUCTION,
