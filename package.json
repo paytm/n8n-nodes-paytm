@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-paytm",
-	"version": "1.3.0",
+	"version": "1.5.5",
 	"description": "n8n community node for Paytm Payments: orders, payment links, refunds, and settlement APIs",
 	"keywords": [
 		"n8n-community-node-package",
@@ -21,14 +21,14 @@
 		"url": "https://github.com/paytm/n8n-nodes-paytm/issues"
 	},
 	"author": {
-		"name": "Paytm"
+		"name": "paytmconnectors",
+		"email": "connectors@paytmpayments.com"
 	},
 	"engines": {
 		"node": ">=20.15"
 	},
 	"main": "dist/index.js",
 	"scripts": {
-		"rebuild:n8n": "bash ./rebuild-refresh-n8n.sh",
 		"build": "npx rimraf dist && tsc && gulp build:icons",
 		"dev": "tsc --watch",
 		"format": "prettier nodes credentials --write",
