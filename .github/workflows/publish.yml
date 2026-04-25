@@ -30,7 +30,7 @@ jobs:
           npm run build
 
       - name: n8n Package Scan
-        run: npx @n8n/scan-community-package@latest .
+        run: npx @n8n/scan-community-package@latest n8n-nodes-paytm
 
       - name: Publish to npm with Provenance
         run: npm publish --provenance --access public
