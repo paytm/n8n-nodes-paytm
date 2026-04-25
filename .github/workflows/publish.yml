@@ -1,0 +1,43 @@
+name: Publish n8n Node
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    environment: production 
+    permissions:
+      contents: read
+      id-token: write # Needed for Provenance
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Quality Check (Lint)
+        run: npm run lint
+
+      - name: Build Node
+        run: npm run build
+
+      # --- THE SCANNER STEP ---
+      - name: n8n Community Package Scan
+        # This scans the '.' (current directory) 
+        # It automatically detects 'n8n-nodes-paytm' from your package.json
+        run: npx @n8n/scan-community-package@latest .
+
+      - name: Publish with Provenance
+        # This ONLY runs if the 'n8n Community Package Scan' step returns a success code
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
