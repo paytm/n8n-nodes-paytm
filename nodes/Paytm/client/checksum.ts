@@ -10,16 +10,6 @@ class PaytmChecksum {
 		encrypted += cipher.final('base64');
 		return encrypted;
 	}
-	static decrypt(encrypted, key) {
-		var decipher = crypto.createDecipheriv('AES-128-CBC', key, PaytmChecksum.iv);
-		var decrypted = decipher.update(encrypted, 'base64', 'binary');
-		try {
-			decrypted += decipher.final('binary');
-		} catch (e) {
-
-		}
-		return decrypted;
-	}
 	static generateSignature(params, key) {
 		if (typeof params !== 'object' && typeof params !== 'string') {
 			var error = 'string or object expected, ' + typeof params + ' given.';
@@ -31,29 +21,9 @@ class PaytmChecksum {
 		return PaytmChecksum.generateSignatureByString(params, key);
 	}
 
-	static verifySignature(params, key, checksum) {
-		if (typeof params !== 'object' && typeof params !== 'string') {
-			var error = 'string or object expected, ' + typeof params + ' given.';
-			return Promise.reject(error);
-		}
-		if (params.hasOwnProperty('CHECKSUMHASH')) {
-			delete params.CHECKSUMHASH;
-		}
-		if (typeof params !== 'string') {
-			params = PaytmChecksum.getStringByParams(params);
-		}
-		return PaytmChecksum.verifySignatureByString(params, key, checksum);
-	}
-
 	static async generateSignatureByString(params, key) {
 		var salt = await PaytmChecksum.generateRandomString(4);
 		return PaytmChecksum.calculateChecksum(params, key, salt);
-	}
-
-	static verifySignatureByString(params, key, checksum) {
-		var paytm_hash = PaytmChecksum.decrypt(checksum, key);
-		var salt = paytm_hash.substr(paytm_hash.length - 4);
-		return paytm_hash === PaytmChecksum.calculateHash(params, salt);
 	}
 
 	static generateRandomString(length) {

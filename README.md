@@ -193,7 +193,7 @@ Adjust paths and install location to match [n8n's Docker installation guide](htt
 ## Version history
 
 - See [GitHub Releases](https://github.com/paytm/n8n-nodes-paytm/releases) for tagged versions.
-- Current package version: **1.5.5** (see `package.json`).
+- Current package version: **1.5.6** (see `package.json`).
 
 ---
 
