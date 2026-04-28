@@ -25,16 +25,16 @@ export enum Operation {
 
 export const ORDER_ACTIONS_OPERATIONS = [
 	{
-		name: 'Get',
-		value: Operation.ORDER_DETAIL,
-		description: 'Fetch order details',
-		action: 'Get order details',
-	},
-	{
-		name: 'Get Many',
+		name: 'Fetch All',
 		value: Operation.FETCH_ORDER_LIST,
 		description: 'Fetch all orders',
-		action: 'Get many orders',
+		action: 'Fetch all orders',
+	},
+	{
+		name: 'Fetch',
+		value: Operation.ORDER_DETAIL,
+		description: 'Fetch order details',
+		action: 'Fetch order details',
 	},
 ];
 
@@ -43,40 +43,40 @@ export const PAYMENTS_OPERATIONS = [
 		name: 'Create',
 		value: Operation.CREATE_PAYMENT_LINK,
 		description: 'Create and share a payment link',
-		action: 'Create payment link',
+		action: 'Create a payment link',
 	},
 	{
-		name: 'Get',
+		name: 'Fetch',
 		value: Operation.FETCH_TRANSACTIONS_FOR_LINK,
-		description: 'Fetch all transactions for a payment link',
-		action: 'Get payment link',
+		description: 'Fetch payment link details',
+		action: 'Fetch a payment link',
 	},
 	{
-		name: 'Get Many',
+		name: 'Fetch All',
 		value: Operation.FETCH_PAYMENT_LINKS,
 		description: 'Fetch all payment links',
-		action: 'Get many payment links',
+		action: 'Fetch all payment links',
 	},
 ];
 
 export const SUBSCRIPTION_OPERATIONS = [
 	{
-		name: 'Delete',
+		name: 'Cancel',
 		value: Operation.CANCEL_SUBSCRIPTION,
 		description: 'Cancel an active subscription',
-		action: 'Cancel subscription',
+		action: 'Cancel a subscription',
 	},
 	{
-		name: 'Get',
+		name: 'Fetch',
 		value: Operation.FETCH_SUBSCRIPTION_STATUS,
 		description: 'Fetch details and status of subscription',
-		action: 'Get subscription status',
+		action: 'Fetch a subscription',
 	},
 	{
-		name: 'Update',
+		name: 'Pause or Resume',
 		value: Operation.PAUSE_RESUME_SUBSCRIPTION,
 		description: 'Pause or resume a subscription',
-		action: 'Pause or resume subscription',
+		action: 'Pause or resume a subscription',
 	},
 ];
 
@@ -85,33 +85,33 @@ export const REFUND_OPERATIONS = [
 		name: 'Create',
 		value: Operation.INITIATE_REFUND,
 		description: 'Initiate a full or partial refund',
-		action: 'Create refund',
+		action: 'Create a refund',
 	},
 	{
-		name: 'Get',
+		name: 'Fetch',
 		value: Operation.CHECK_REFUND_STATUS,
 		description: 'Fetch refund status',
-		action: 'Get refund status',
+		action: 'Fetch a refund',
 	},
 	{
-		name: 'Get Many',
+		name: 'Fetch All',
 		value: Operation.FETCH_REFUND_LIST,
 		description: 'Fetch all refund requests',
-		action: 'Get many refund requests',
+		action: 'Fetch all refunds',
 	},
 ];
 
 export const SETTLEMENT_OPERATIONS = [
 	{
-		name: 'Get Many',
-		value: Operation.SETTLEMENT_BILL_LIST,
-		description: 'Fetch all settlement details',
-		action: 'Fetch all settlement details',
-	},
-	{
-		name: 'Get Many Transactions',
+		name: 'Fetch All Transactions',
 		value: Operation.SETTLEMENT_TXN_LIST_BY_DATE,
 		description: 'Fetch transaction level details for a settlement',
-		action: 'Get many settlement transactions',
+		action: 'Fetch all settlement transactions',
+	},
+	{
+		name: 'Fetch All',
+		value: Operation.SETTLEMENT_BILL_LIST,
+		description: 'Fetch all settlement details',
+		action: 'Fetch all settlements',
 	},
 ];
