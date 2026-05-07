@@ -56,7 +56,7 @@ export class Paytm implements INodeType {
 		description: NODE_CONFIG.DESCRIPTION,
 		documentationUrl: NODE_CONFIG.DOCUMENTATION_URL,
 		defaults: {
-			name: 'Paytm',
+			name: NODE_CONFIG.DISPLAY_NAME,
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
