@@ -66,6 +66,8 @@ async function paytmAuthenticate(
 			properties: {
 				headers: {
 					'Content-Type': 'application/json',
+					'x-merchant-key': mid,
+					'x-source-key': 'n8n',
 				},
 			},
 		});
@@ -92,6 +94,8 @@ async function paytmAuthenticate(
 		properties: {
 			headers: {
 				'Content-Type': 'application/json',
+				'x-merchant-key': mid,
+				'x-source-key': 'n8n',
 			},
 		},
 	});
