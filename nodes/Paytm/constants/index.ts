@@ -51,7 +51,7 @@ export type PaytmSecureApiOperation = keyof typeof PAYTM_SECURE_API_ENDPOINT;
 export const NODE_CONFIG = {
 	/** Paytm developer docs (node “Documentation” link; credential uses `DOCUMENTATION_URLS.GETTING_STARTED`). */
 	DOCUMENTATION_URL: DOCUMENTATION_URLS.GETTING_STARTED,
-	DISPLAY_NAME: 'Paytm for Business',
+	DISPLAY_NAME: 'Paytm Payment Gateway',
 	NAME: 'paytm',
 	ICON: 'file:assets/paytm.svg',
 	GROUP: ['transform'],
