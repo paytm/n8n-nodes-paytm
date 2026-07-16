@@ -4,8 +4,9 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
+	JsonObject,
 } from 'n8n-workflow';
-import { ApplicationError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { ApplicationError, NodeApiError, NodeConnectionTypes } from 'n8n-workflow';
 
 import { NODE_CONFIG } from './constants';
 import {
@@ -246,7 +247,7 @@ export class Paytm implements INodeType {
 						pairedItem: { item: itemIndex },
 					});
 				} else {
-					throw new NodeOperationError(this.getNode(), error as Error, {
+					throw new NodeApiError(this.getNode(), error as JsonObject, {
 						itemIndex,
 					});
 				}

@@ -23,8 +23,8 @@ export const pauseResumeSubscriptionDescription: INodeProperties[] = [
 		default: 'SUSPENDED',
 		required: true,
 		options: [
-			{ name: 'ACTIVE', value: 'ACTIVE' },
-			{ name: 'SUSPENDED', value: 'SUSPENDED' },
+			{ name: 'Active', value: 'ACTIVE' },
+			{ name: 'Suspended', value: 'SUSPENDED' },
 		],
 		description: 'Desired status to which the subscription needs to be moved',
 		displayOptions: { show: { operation: [Operation.PAUSE_RESUME_SUBSCRIPTION] } },
