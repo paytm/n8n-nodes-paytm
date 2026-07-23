@@ -114,6 +114,8 @@ export class PaytmApi implements ICredentialType {
 
 	displayName = 'Paytm API';
 
+	icon = 'file:../nodes/Paytm/assets/paytm.svg' as const;
+
 	documentationUrl = 'https://www.paytmpayments.com/docs/getting-started';
 
 	/** Enables n8n to inject “Allowed HTTP Request Domains” (see n8n `load-nodes-and-credentials`). */

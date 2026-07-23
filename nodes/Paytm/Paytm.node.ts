@@ -54,6 +54,7 @@ export class Paytm implements INodeType {
 		icon: NODE_CONFIG.ICON as unknown as INodeTypeDescription['icon'],
 		group: NODE_CONFIG.GROUP as INodeTypeDescription['group'],
 		version: NODE_CONFIG.VERSION,
+		subtitle: NODE_CONFIG.subtitle,
 		description: NODE_CONFIG.DESCRIPTION,
 		documentationUrl: NODE_CONFIG.DOCUMENTATION_URL,
 		defaults: {
@@ -73,7 +74,7 @@ export class Paytm implements INodeType {
 				displayName: 'Resource',
 				name: 'resource',
 				type: 'options',
-				default: Resource.ORDER_ACTIONS,
+				default: 'orderActions',
 				noDataExpression: true,
 				options: [
 					{
@@ -102,7 +103,7 @@ export class Paytm implements INodeType {
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
-				default: Operation.FETCH_ORDER_LIST,
+				default: 'fetchOrderList',
 				displayOptions: {
 					show: {
 						resource: [Resource.ORDER_ACTIONS],
@@ -115,7 +116,7 @@ export class Paytm implements INodeType {
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
-				default: Operation.FETCH_TRANSACTIONS_FOR_LINK,
+				default: 'fetchTransactionsForLink',
 				displayOptions: {
 					show: {
 						resource: [Resource.PAYMENTS],
@@ -128,7 +129,7 @@ export class Paytm implements INodeType {
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
-				default: Operation.FETCH_REFUND_LIST,
+				default: 'fetchRefundList',
 				displayOptions: {
 					show: {
 						resource: [Resource.REFUND],
@@ -141,7 +142,7 @@ export class Paytm implements INodeType {
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
-				default: Operation.FETCH_SUBSCRIPTION_STATUS,
+				default: 'fetchSubscriptionStatus',
 				displayOptions: {
 					show: {
 						resource: [Resource.SUBSCRIPTION],
@@ -154,7 +155,7 @@ export class Paytm implements INodeType {
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
-				default: Operation.SETTLEMENT_TXN_LIST_BY_DATE,
+				default: 'settlementTxnListByDate',
 				displayOptions: {
 					show: {
 						resource: [Resource.SETTLEMENT_ACTIONS],

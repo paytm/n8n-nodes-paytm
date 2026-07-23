@@ -142,13 +142,6 @@ module.exports = {
 				'n8n-nodes-base/node-param-type-options-password-missing': 'error',
 			},
 		},
-		{
-			files: ['./nodes/Paytm/Paytm.node.ts'],
-			rules: {
-				// Autofix for this rule inserts a duplicate `default` key; explicit defaults are valid.
-				'n8n-nodes-base/node-param-default-missing': 'off',
-			},
-		},
 	],
 };
 
